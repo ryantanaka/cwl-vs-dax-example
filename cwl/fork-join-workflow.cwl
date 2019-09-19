@@ -19,19 +19,19 @@ steps:
             input_file_2: initial_input_file_2
         out: [output_file_1, output_file_2, output_file_3]
 
-    Child1:
+    child1:
         run: child-process-param.cwl
         in:
             input_file: initialProcess/output_file_1
         out: [output_file]
 
-    Child2:
+    child2:
         run: child-process-param.cwl
         in:
             input_file: initialProcess/output_file_2
         out: [output_file]
 
-    Child3:
+    child3:
         run: child-process-param.cwl
         in:
             input_file: initialProcess/output_file_3
