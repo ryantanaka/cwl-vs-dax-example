@@ -7,8 +7,9 @@ inputs:
     input_file_2: File
 
 outputs:
-    output_file: File
-    outputSource: join/joinedFile
+    final_output:
+        type: File
+        outputSource: join/joinedFile
 
 steps:
     initialProcess:
