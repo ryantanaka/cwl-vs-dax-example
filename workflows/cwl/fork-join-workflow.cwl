@@ -3,43 +3,43 @@
 cwlVersion: v1.0
 class: Workflow
 inputs:
-    input_file_1: File
-    input_file_2: File
+    initial_input_file_1: File
+    initial_input_file_2: File
 
 outputs:
     final_output:
         type: File
-        outputSource: finalProcess/final_process_out 
+        outputSource: finalProcess/output_file
 
 steps:
     initialProcess:
-        run: /usr/bin/initialProcess
+        run: initial-process-param.cwl
         in:
-            input_1: input_file_1
-            input_2: input_file_2
-        out: [initial_process_out_1, initial_process_out_2, initial_processs_out_3]
+            input_file_1: initial_input_file_1
+            input_file_2: initial_input_file_2
+        out: [output_file_1, output_file_2, output_file_3]
 
-    initialProcessChild1:
-        run: /usr/bin/initialProcessChild
+    Child1:
+        run: child-process-param.cwl
         in:
-            src: initialProcess/initial_process_out_1
-        out: [initial_child_1_out]
+            input_file: initialProcess/output_file_1
+        out: [output_file]
 
-    initialProcessChild2:
-        run: /usr/bin/initialProcessChild
+    Child2:
+        run: child-process-param.cwl
         in:
-            src: initialProcess/initial_process_out_2
-        out: [initial_child_2_out]
+            input_file: initialProcess/output_file_2
+        out: [output_file]
 
-    initialProcessChild3:
-        run: /usr/bin/initialProcessChild
+    Child3:
+        run: child-process-param.cwl
         in:
-            src: initialProcess/initial_process_out_3
-        out: [initial_child_3_out]
+            input_file: initialProcess/output_file_3
+        out: [output_file]
 
     finalProcess:
-        run: /usr/bin/finalProcess
+        run: final-process-param.cwl
         in:
-            src: [initialProcessChild1/initial_child_1_out, initialProcessChild2/initial_child_2__out, initialProcessChild3/initial_child_3_out]
-        out: [final_process_out]
+            input_files: [Child1/output_file, Child2/output_file, Child3/output_file]
+        out: [output_file]
 
