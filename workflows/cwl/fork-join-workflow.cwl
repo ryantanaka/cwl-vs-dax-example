@@ -1,7 +1,7 @@
 #!/usr/bin/env cwl-runner
 
 cwlVersion: v1.0
-class: ForkJoinWorkflow
+class: Workflow
 inputs:
     input_file_1: File
     input_file_2: File
