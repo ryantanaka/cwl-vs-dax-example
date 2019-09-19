@@ -9,7 +9,7 @@ inputs:
 outputs:
     final_output:
         type: File
-        outputSource: join/joinedFile
+        outputSource: finalProcess/final_process_out 
 
 steps:
     initialProcess:
