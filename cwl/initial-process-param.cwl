@@ -12,6 +12,7 @@ inputs:
     input_file_2:
         type: File 
         inputBinding:
+            position: 2
 outputs:
     output_file_1:
         type: File

@@ -40,6 +40,6 @@ steps:
     finalProcess:
         run: final-process-param.cwl
         in:
-            input_files: [Child1/output_file, Child2/output_file, Child3/output_file]
+            input_files: [child1/output_file, child2/output_file, child3/output_file]
         out: [output_file]
 
