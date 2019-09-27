@@ -2,8 +2,22 @@
     - the good thing here is that it seems to be auto-generated code based on a schema
         so that may not be an issue as the schema gets updated 
 
+- commands:
+    cwltool --pack source.cwl > packed-source.cwl
+        - this will combine files into a single one where source is the workflow
+        - note that this turns the yaml format into a JSON one 
+
+    cwltool --print-dot source.cwl | dot -Tsvg > source.svg
+        - generate svg of workflow
+    
+    cwltool --validate source.cwl
+        - validate the workflow 
+
 Overview of the DAX XML Schema
 ------------------------------
+- initial input files and their PFNS needs to be placed in a separate YAML file,
+    and so this needs to be parsed by the converter script 
+
 - DAX has Invoke, CWL does not
     - that is CWL does not have a field where we can specify that a submit host
         executes "what" (some executable), "when" some event happens such as 
