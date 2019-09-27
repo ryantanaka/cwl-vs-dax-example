@@ -2,6 +2,7 @@
 import argparse
 import sys
 import os
+from yaml import Loader, load
 
 import cwl_utils.parser_v1_0 as cwl
 
@@ -12,10 +13,12 @@ def parse_args():
     parser = argparse.ArgumentParser(
             description="Test tool to parse a cwl workflow using cwl_utils")
     parser.add_argument("cwl_workflow_file_path", help="cwl workflow file")
+    parser.add_argument("input_file_spec_path", help="yaml file describing workflow inputs")
     return parser.parse_args()
 
 def main():
     args = parse_args()
+
     workflow_file_path = args.cwl_workflow_file_path
     workflow_file_dir = os.path.dirname(workflow_file_path)
 
@@ -85,8 +88,26 @@ def main():
         according to the docs, this is meant for command line bindings which are not directly 
         associated with input parameters
         '''
+
+        # ADD PFNs for initial input files 
+        '''
+        Initial input files are specified in a separate YAML file according to the CWL docs. 
+        For each file in the separate YAML file, we need to get the PFNs for those files if
+        they exist and add them to the File objects in the Pegasus adag object. 
+        '''
+        input_file_spec_path = args.input_file_spec_path
+        with open(input_file_spec_path, "r") as yaml_file:
+            input_file_specs = load(yaml_file, Loader=Loader)
         
-        with open("cwl-to-dax-conversion-workflow.xml", "w") as f:
+        for filename, properties in input_file_specs.items():
+            id = "#" + filename
+            if properties["class"] == "File":
+                for file_ in input_files:
+                    if file_.name.endswith(id):
+                        file_.addPFN(PFN(properties["path"], "what to do about this site??"))
+                        break
+
+        with open("2cwl-to-dax-conversion-workflow.xml", "w") as f:
             adag.writeXML(f)
 
 if __name__=="__main__":

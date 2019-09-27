@@ -1,0 +1,6 @@
+initial_input_file_1:
+    class: File
+    path: /PFN/for/this/file/initial_input_file_1.txt
+initial_input_file_2:
+    class: File
+    path: /PFN/for/this/file/initial_input_file_2.txt
