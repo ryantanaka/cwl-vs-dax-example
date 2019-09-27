@@ -1,0 +1,12 @@
+- the cwl-util parser needs to be maintained if we rely on it
+    - the good thing here is that it seems to be auto-generated code based on a schema
+        so that may not be an issue as the schema gets updated 
+
+Overview of the DAX XML Schema
+------------------------------
+- DAX has Invoke, CWL does not
+    - that is CWL does not have a field where we can specify that a submit host
+        executes "what" (some executable), "when" some event happens such as 
+        "on_exit", "on_err", "start", etc..
+
+-   
