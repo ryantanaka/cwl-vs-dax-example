@@ -34,5 +34,6 @@ Overview of the DAX XML Schema
     AbstractJobs 
 
 -    ** look at arguments for CommandLineTool 
-
+-    ** what about UseMixins, there is information encoded there like transfer=True...
+        - where does this fit in with CWL 
 
