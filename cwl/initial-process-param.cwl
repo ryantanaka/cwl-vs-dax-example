@@ -28,3 +28,7 @@ outputs:
         type: File
         outputBinding:
            glob: "output_file_3.txt"
+hints:
+    hint1:
+        what: whatisthis 
+        another: another key

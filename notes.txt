@@ -23,4 +23,16 @@ Overview of the DAX XML Schema
         executes "what" (some executable), "when" some event happens such as 
         "on_exit", "on_err", "start", etc..
 
--   
+- Metadata in DAX is just kv pairs that can be added to CatalogTypes, AbstractJobs, and Transformations
+    - the closes thing to this would be the "hint" field where you can have a map
+        -for example (this may not reflect proper usage though)
+            hints:
+                some_hint: the_hint
+                another_hint: the_other_hint
+
+- there is no where to place Profiles as they can be added to CatalogTypes and
+    AbstractJobs 
+
+-    ** look at arguments for CommandLineTool 
+
+
