@@ -53,7 +53,8 @@
             "outputs": [
                 {
                     "type": "File",
-                    "id": "#main/analysis_file"
+                    "outputSource": "#main/j4/analysis_file",
+                    "id": "#main/workflow_output_file"
                 }
             ],
             "steps": [
