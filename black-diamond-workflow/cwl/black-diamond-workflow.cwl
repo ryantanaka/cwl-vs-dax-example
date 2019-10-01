@@ -4,7 +4,9 @@ inputs:
     workflow_input_file: File
 
 outputs:
-    analysis_file: File
+    workflow_output_file:
+        type: File
+        outputSource: j4/analysis_file
 
 steps:
     j1:
