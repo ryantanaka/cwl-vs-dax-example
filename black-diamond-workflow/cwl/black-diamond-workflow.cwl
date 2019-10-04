@@ -102,7 +102,7 @@ steps:
         id: j3
         run: findrange.cwl
         in:
-            input_file: j1/output_file_2
+            input_file: j1/output_file_1
         out: [output_file]
 
 
