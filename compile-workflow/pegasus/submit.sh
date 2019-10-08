@@ -12,11 +12,14 @@ mkdir -p $WORK_DIR
 
 export RUN_ID=test-workflow-`date +'%s'`
 
-# generate workflow
-../../pegasus-cwl-converter.py ../workflow.cwl ../input.yml ./workflow.xml
+export INPUT_DIR=$(pwd)/../
 
 #envsubst < tc.txt.template > tc.txt
 envsubst < sites.xml.template > sites.xml
+envsubst < ../input.yml.template > ../input.yml
+
+# generate workflow
+../../pegasus-cwl-converter.py ../workflow.cwl ../input.yml ./workflow.xml
 
 # plan and submit the  workflow
 pegasus-plan \

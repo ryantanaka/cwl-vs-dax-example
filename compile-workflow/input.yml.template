@@ -1,4 +1,4 @@
 tarball:
   class: File
-  path: HelloC.tar
+  path: $INPUT_DIR/HelloC.tar
 name_of_file_to_extract: HelloC.cpp
