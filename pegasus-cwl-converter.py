@@ -44,12 +44,15 @@ def parse_args():
     parser.add_argument("output_file_path", help="path to output file")
     return parser.parse_args()
 
+'''
 def get_basename(process, name):
     if "#" in process.id:
         return name.replace(process.id + "/", "")
     else:
         return name.replace(process.id + "#", "")
-
+'''
+def get_basename(name):
+    return name.split("#")[1]
 
 class ReplicaCatalog:
     # TODO: make this more comprehensive
@@ -60,8 +63,7 @@ class ReplicaCatalog:
 
     # account for more complex entries into the catalog
     def add_item(self, lfn, pfn, site):
-
-        self.items.add("{0} {1} site={2}".format(lfn.split("#")[1], os.path.abspath(pfn), site))
+        self.items.add("{0} {1} site={2}".format(lfn, pfn, site))
 
     def write_catalog(self, filename):
         with open(filename, "w") as rc:
@@ -113,14 +115,17 @@ def main():
         for id, fields in input_file_specs.items():
             if isinstance(fields, dict):
                 if fields["class"] == "File":
-                    full_name = workflow.id + "#" + id
-                    rc.add_item(full_name, fields["path"], "local")
+                    rc.add_item(id, fields["path"], "local")
             elif isinstance(fields, str):
                 workflow_input_strings[id] = fields
 
-    # process steps, add executables, add jobs, add files
+    # add all output files to adag
+    # only supporting outputs of type file for now
     for step in workflow.steps:
+        for output in step.out:
+            adag.addFile(File(get_basename(output)))
 
+    for step in workflow.steps:
         # convert cwl:CommandLineTool -> pegasus:Executable
         cwl_command_line_tool = cwl.load_document(step.run) if isinstance(step.run, str) else step.run
         dax_executable = Executable(cwl_command_line_tool.baseCommand)
@@ -131,42 +136,27 @@ def main():
         # create job with executable
         dax_job = Job(dax_executable)
 
-        # process input files
-        step_inputs = {get_basename(step, input.id) : input.source for input in step.in_}
-        print("**step inputs**")
-        print(step_inputs)
+        # get the inputs of this step
+        step_inputs = {get_basename(input.id) : get_basename(input.source) for input in step.in_}
 
+        # add input uses to job
         for input in cwl_command_line_tool.inputs:
             if input.type == "File":
-                print(get_basename(cwl_command_line_tool, input.id))
-                if not adag.hasFile(step_inputs[get_basename(cwl_command_line_tool, input.id)]):
-                    #file = File(step_inputs[get_basename(cwl_command_line_tool, input.id)])
-                    file = File(get_basename(cwl_command_line_tool, input.id))
-                    dax_job.uses(file, link=Link.INPUT)
-                    adag.addFile(file)
+                dax_job.uses(
+                    File(step_inputs[get_basename(step.id) + "/" + get_basename(input.id)]),
+                    link=Link.INPUT
+                )
 
-
-
-            elif input.type == "File[]":
-                for filename in step_inputs[get_basename(cwl_command_line_tool, input.id)]:
-                    if not adag.hasFile(filename):
-                        file = File(filename)
-                        dax_job.uses(file, link=Link.INPUT)
-                        adag.addFile(File(filename))
-
-        # process output files
-        # ** assuming step.out is a list of strings and not WorkflowStepOutput
-        step_outputs = {get_basename(step, output) : output for output in step.out}
-
-        #cwl_command_line_tool_output_types = {
-
-        dax_job_output_files = {filename : File(fileid) for filename, fileid in step_outputs.items()}
-        for filename, file in dax_job_output_files.items():
-            # TODO: get transfer and register values from pegasus extension
-            #dax_job.uses(file, link=Link.OUTPUT, transfer=True, register=True) if not adag.hasFile(file.name):
-            dax_job.uses(filename, link=Link.OUTPUT, transfer=True, register=True)
-            if not adag.hasFile(filename):
-                adag.addFile(File(filename))
+        # add output uses to job
+        # TODO: confirm that these are of type File or File[]
+        for output in step.out:
+            output_file = File(get_basename(output))
+            dax_job.uses(
+                    output_file,
+                    link=Link.OUTPUT,
+                    transfer=True,
+                    register=True
+                )
 
         # add arguments to job
         # TODO: place argument building up in a function
@@ -183,25 +173,13 @@ def main():
                 if input.inputBinding.prefix is not None:
                     dax_job_args.append(input.inputBinding.prefix)
 
-                # TODO: account for separator
-                if input.type == "File[]":
-                    for filename in step_inputs[get_basename(cwl_command_line_tool, input.id)]:
-                        dax_job_args.append(adag.getFile(filename))
-
-                elif input.type == "File":
-                    #dax_job_args.append(adag.getFile(step_inputs[get_basename(cwl_command_line_tool, input.id)]))
-                    dax_job_args.append(adag.getFile(get_basename(cwl_command_line_tool, input.id)))
+                if input.type == "File":
+                    dax_job_args.append(File(step_inputs[get_basename(step.id) + "/" + get_basename(input.id)]))
 
                 # TODO: take into account string inputs that are outputs of other steps
                 #       and not just workflow inputs
 
-                input_string_id = get_basename(
-                                    workflow,
-                                    step_inputs[get_basename(
-                                        cwl_command_line_tool,
-                                        input.id
-                                        )]
-                                    )
+                input_string_id = step_inputs[get_basename(step.id) + "/" + get_basename(input.id)]
 
                 arg_string = ""
                 if input.type == "string[]":
@@ -217,6 +195,7 @@ def main():
                 dax_job_args.append(arg_string)
 
         dax_job.addArguments(*dax_job_args)
+
 
         # add executable to DAG
         if not adag.hasExecutable(dax_executable):
