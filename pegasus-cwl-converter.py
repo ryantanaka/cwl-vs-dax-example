@@ -9,8 +9,8 @@ import shutil
 from yaml import Loader, load
 
 # TODO: these need to be changed when this script is added to pegasus master
-sys.path.insert(0, "/nfs/u2/tanaka/pegasus/lib/pegasus/python")
-#sys.path.insert(0, "/Users/ryantanaka/ISI/pegasus/dist/pegasus-5.0.0dev/lib/pegasus/python")
+#sys.path.insert(0, "/nfs/u2/tanaka/pegasus/lib/pegasus/python")
+sys.path.insert(0, "/Users/ryantanaka/ISI/pegasus/dist/pegasus-5.0.0dev/lib/pegasus/python")
 from Pegasus.DAX3 import *
 import cwl_utils.parser_v1_0 as cwl
 
@@ -110,14 +110,24 @@ def main():
     # TODO: need to account for the different fields for a file class
     # TODO: log warning for the fields that we are skipping
     workflow_input_strings = dict()
+    workflow_files = dict()
     with open(args.input_file_spec_path, "r") as yaml_file:
         input_file_specs = load(yaml_file, Loader=Loader)
         for id, fields in input_file_specs.items():
             if isinstance(fields, dict):
                 if fields["class"] == "File":
+                    workflow_files[id] = id
                     rc.add_item(id, fields["path"], "local")
             elif isinstance(fields, str):
                 workflow_input_strings[id] = fields
+
+    for step in workflow.steps:
+        cwl_command_line_tool = cwl.load_document(step.run) if isinstance(step.run, str) else step.run
+
+        for clt_output in cwl_command_line_tool.outputs:
+            # TODO: account for outputs that are not files
+            workflow_files[get_basename(step.id) + "/" + get_basename(clt_output.id)] = clt_output.outputBinding.glob
+
 
     for step in workflow.steps:
         # convert cwl:CommandLineTool -> pegasus:Executable
@@ -132,19 +142,20 @@ def main():
 
         # get the inputs of this step
         step_inputs = {get_basename(input.id) : get_basename(input.source) for input in step.in_}
+        print(step_inputs)
 
         # add input uses to job
         for input in cwl_command_line_tool.inputs:
             if input.type == "File":
                 dax_job.uses(
-                    File(step_inputs[get_basename(step.id) + "/" + get_basename(input.id)]),
+                    File(workflow_files[step_inputs[get_basename(step.id) + "/" + get_basename(input.id)]]),
                     link=Link.INPUT
                 )
 
         # add output uses to job
-        # TODO: confirm that these are of type File or File[]
+        # TODO: ensure that these are of type File or File[]
         for output in step.out:
-            output_file = File(get_basename(output))
+            output_file = File(workflow_files[get_basename(output)])
             dax_job.uses(
                     output_file,
                     link=Link.OUTPUT,
@@ -168,7 +179,7 @@ def main():
                     dax_job_args.append(input.inputBinding.prefix)
 
                 if input.type == "File":
-                    dax_job_args.append(File(step_inputs[get_basename(step.id) + "/" + get_basename(input.id)]))
+                    dax_job_args.append(File(workflow_files[step_inputs[get_basename(step.id) + "/" + get_basename(input.id)]]))
 
                 # TODO: take into account string inputs that are outputs of other steps
                 #       and not just workflow inputs
@@ -197,14 +208,14 @@ def main():
         # add job to DAG
         adag.addJob(dax_job)
 
-    # TODO: fix this, can't have forward slash in lfn, so replacing 
-    # with "." for now to get this working 
+    # TODO: fix this, can't have forward slash in lfn, so replacing
+    # with "." for now to get this working
     for filename, file in adag.files.items():
         if "/" in filename:
             file.name.replace("/", ".")
 
-    # TODO: fix this, can't have forward slash in lfn, so replacing 
-    # with "." for now to get this working 
+    # TODO: fix this, can't have forward slash in lfn, so replacing
+    # with "." for now to get this working
     for jobid, job in adag.jobs.items():
         for used in job.used:
             if "/" in used.name:
