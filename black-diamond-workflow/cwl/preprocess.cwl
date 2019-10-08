@@ -1,6 +1,6 @@
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: /usr/bin/keg # what about file prefix? what about location?
+baseCommand: /usr/bin/keg
 id: preprocess
 arguments: ["-a", "preprocesss", "-T", "60", "-o", "output_file_1", "output_file_2"]
 inputs:

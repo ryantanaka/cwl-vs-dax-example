@@ -4,6 +4,7 @@ certifi==2019.9.11
 chardet==3.0.4
 coloredlogs==10.0
 cwl-utils==0.1
+cwlref-runner==1.0
 cwltool==1.0.20190915164430
 decorator==4.4.0
 future==0.17.1
