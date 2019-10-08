@@ -9,8 +9,8 @@ import shutil
 from yaml import Loader, load
 
 # TODO: these need to be changed when this script is added to pegasus master
-#sys.path.insert(0, "/nfs/u2/tanaka/pegasus/lib/pegasus/python")
-sys.path.insert(0, "/Users/ryantanaka/ISI/pegasus/dist/pegasus-5.0.0dev/lib/pegasus/python")
+sys.path.insert(0, "/nfs/u2/tanaka/pegasus/lib/pegasus/python")
+#sys.path.insert(0, "/Users/ryantanaka/ISI/pegasus/dist/pegasus-5.0.0dev/lib/pegasus/python")
 from Pegasus.DAX3 import *
 import cwl_utils.parser_v1_0 as cwl
 
@@ -119,12 +119,6 @@ def main():
             elif isinstance(fields, str):
                 workflow_input_strings[id] = fields
 
-    # add all output files to adag
-    # only supporting outputs of type file for now
-    for step in workflow.steps:
-        for output in step.out:
-            adag.addFile(File(get_basename(output)))
-
     for step in workflow.steps:
         # convert cwl:CommandLineTool -> pegasus:Executable
         cwl_command_line_tool = cwl.load_document(step.run) if isinstance(step.run, str) else step.run
@@ -196,13 +190,30 @@ def main():
 
         dax_job.addArguments(*dax_job_args)
 
-
         # add executable to DAG
         if not adag.hasExecutable(dax_executable):
             adag.addExecutable(dax_executable)
 
         # add job to DAG
         adag.addJob(dax_job)
+
+    # TODO: fix this, can't have forward slash in lfn, so replacing 
+    # with "." for now to get this working 
+    for filename, file in adag.files.items():
+        if "/" in filename:
+            file.name.replace("/", ".")
+
+    # TODO: fix this, can't have forward slash in lfn, so replacing 
+    # with "." for now to get this working 
+    for jobid, job in adag.jobs.items():
+        for used in job.used:
+            if "/" in used.name:
+                used.name = used.name.replace("/", ".")
+
+        for arg in job.arguments:
+            if isinstance(arg, File):
+                if "/" in arg.name:
+                    arg.name = arg.name.replace("/", ".")
 
     rc.write_catalog("rc.txt")
     tc.write_catalog("tc.txt")

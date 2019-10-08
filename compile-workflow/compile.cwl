@@ -2,7 +2,7 @@
 
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: clang++
+baseCommand: gcc
 arguments: ["-std=c++11"]
 inputs:
     src:
