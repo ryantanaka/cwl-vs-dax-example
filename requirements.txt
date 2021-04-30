@@ -32,4 +32,4 @@ schema-salad==4.5.20190906201758
 shellescape==3.4.1
 six==1.12.0
 typing-extensions==3.7.4
-urllib3==1.25.6
+urllib3==1.25.8
